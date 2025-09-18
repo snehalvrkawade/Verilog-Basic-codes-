@@ -1,0 +1,34 @@
+// Dataflow
+module xor1(input a, b, output y);
+  assign y = a ^ b;
+endmodule
+
+// Structural
+module xor2(input a, b, output y);
+  xor(y, a, b);
+endmodule
+
+// Behavioral
+module xor3(input a, b, output reg y);
+  always @(*) begin
+    y = a ^ b;
+  end
+endmodule
+
+// Testbench
+module tb_xor;
+  reg a, b;
+  wire y;
+  xor1 dut(.a(a), .b(b), .y(y)); // change to xor2 / xor3
+
+  initial begin
+    $dumpfile("xor_gate.vcd");
+    $dumpvars(0, tb_xor);
+    $monitor("Time=%0t | a=%b | b=%b | y=%b", $time, a, b, y);
+    a=0; b=0; #5;
+    a=0; b=1; #5;
+    a=1; b=0; #5;
+    a=1; b=1; #5;
+    $finish;
+  end
+endmodule
