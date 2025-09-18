@@ -1,0 +1,34 @@
+// Dataflow
+module nand1(input a, b, output y);
+  assign y = ~(a & b);
+endmodule
+
+// Structural
+module nand2(input a, b, output y);
+  nand(y, a, b);
+endmodule
+
+// Behavioral
+module nand3(input a, b, output reg y);
+  always @(*) begin
+    y = ~(a & b);
+  end
+endmodule
+
+// Testbench
+module tb_nand;
+  reg a, b;
+  wire y;
+  nand1 dut(.a(a), .b(b), .y(y)); // change to nand2 / nand3
+
+  initial begin
+    $dumpfile("nand_gate.vcd");
+    $dumpvars(0, tb_nand);
+    $monitor("Time=%0t | a=%b | b=%b | y=%b", $time, a, b, y);
+    a=0; b=0; #5;
+    a=0; b=1; #5;
+    a=1; b=0; #5;
+    a=1; b=1; #5;
+    $finish;
+  end
+endmodule
