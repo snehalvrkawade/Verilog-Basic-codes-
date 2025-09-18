@@ -1,0 +1,49 @@
+// Dataflow
+module encoder_df(input [3:0] I, output y0, y1);
+  assign y0 = I[2] | I[3];
+  assign y1 = I[1] | I[3];
+endmodule
+
+// Structural
+module encoder_st(input [3:0] I, output y0, y1);
+  or(y0, I[2], I[3]);
+  or(y1, I[1], I[3]);
+endmodule
+
+// Behavioral
+module encoder_bh(input [3:0] I, output reg y0, y1);
+  always @(*) begin
+    case(I)
+      4'b0001: {y1,y0} = 2'b00;
+      4'b0010: {y1,y0} = 2'b01;
+      4'b0100: {y1,y0} = 2'b10;
+      4'b1000: {y1,y0} = 2'b11;
+      default: {y1,y0} = 2'bxx;
+    endcase
+  end
+endmodule
+
+// Testbench
+module tb;
+  reg [3:0] I;
+  wire y0, y1;
+
+  // Change between encoder_df / encoder_st / encoder_bh here
+  encoder_df dut(.I(I), .y0(y0), .y1(y1));
+  //encoder_st dut(.I(I), .y0(y0), .y1(y1));
+  //encoder_bh dut(.I(I), .y0(y0), .y1(y1));
+
+  initial begin
+    $dumpfile("encoder.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | I=%b | y1=%b | y0=%b", $time, I, y1, y0);
+
+    I = 4'b0001; #5;   // expect 00
+    I = 4'b0010; #5;   // expect 01
+    I = 4'b0100; #5;   // expect 10
+    I = 4'b1000; #5;   // expect 11
+    I = 4'b1111; #5;   // invalid → xx
+
+    $finish;
+  end
+endmodule
