@@ -1,0 +1,34 @@
+// Dataflow
+module nor1(input a, b, output y);
+  assign y = ~(a | b);
+endmodule
+
+// Structural
+module nor2(input a, b, output y);
+  nor(y, a, b);
+endmodule
+
+// Behavioral
+module nor3(input a, b, output reg y);
+  always @(*) begin
+    y = ~(a | b);
+  end
+endmodule
+
+// Testbench
+module tb_nor;
+  reg a, b;
+  wire y;
+  nor1 dut(.a(a), .b(b), .y(y)); // change to nor2 / nor3
+
+  initial begin
+    $dumpfile("nor_gate.vcd");
+    $dumpvars(0, tb_nor);
+    $monitor("Time=%0t | a=%b | b=%b | y=%b", $time, a, b, y);
+    a=0; b=0; #5;
+    a=0; b=1; #5;
+    a=1; b=0; #5;
+    a=1; b=1; #5;
+    $finish;
+  end
+endmodule
