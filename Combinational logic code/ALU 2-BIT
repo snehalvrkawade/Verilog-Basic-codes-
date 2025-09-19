@@ -1,0 +1,87 @@
+//================ ALU 2-BIT ALL MODELING STYLES =================
+
+//================ DATAFLOW MODEL ====================
+/*
+module alu2bit(input [1:0] A,B,
+               input [1:0] op,
+               output [2:0] Y);
+  assign Y = (op==2'b00) ? (A+B) :
+             (op==2'b01) ? (A-B) :
+             (op==2'b10) ? (A&B) :
+             (A|B);
+endmodule
+*/
+
+//================ BEHAVIORAL MODEL (if-else) ====================
+/*
+module alu2bit(input [1:0] A,B,
+               input [1:0] op,
+               output reg [2:0] Y);
+  always @(*) begin
+    if(op==2'b00) Y = A + B;
+    else if(op==2'b01) Y = A - B;
+    else if(op==2'b10) Y = A & B;
+    else Y = A | B;
+  end
+endmodule
+*/
+
+//================ BEHAVIORAL MODEL (case) ====================
+/*
+module alu2bit(input [1:0] A,B,
+               input [1:0] op,
+               output reg [2:0] Y);
+  always @(*) begin
+    case(op)
+      2'b00: Y = A + B;
+      2'b01: Y = A - B;
+      2'b10: Y = A & B;
+      2'b11: Y = A | B;
+      default: Y = 3'b000;
+    endcase
+  end
+endmodule
+*/
+
+//================ STRUCTURAL MODEL ====================
+/*
+module alu2bit(input [1:0] A,B,
+               input [1:0] op,
+               output [2:0] Y);
+  wire [2:0] sum, diff;
+  wire [1:0] and_out, or_out;
+
+  assign sum = A + B;
+  assign diff = A - B;
+  assign and_out = A & B;
+  assign or_out = A | B;
+
+  assign Y = (op==2'b00) ? sum :
+             (op==2'b01) ? diff :
+             (op==2'b10) ? {1'b0,and_out} :
+             {1'b0,or_out};
+endmodule
+*/
+
+//================ TESTBENCH ====================
+module tb_alu2bit;
+  reg [1:0] A,B;
+  reg [1:0] op;
+  wire [2:0] Y;
+
+  alu2bit dut(.A(A),.B(B),.op(op),.Y(Y)); // Change module type as needed
+
+  initial begin
+    $dumpfile("alu2bit.vcd");
+    $dumpvars(0,tb_alu2bit);
+    $monitor("Time=%0t | A=%b B=%b | op=%b | Y=%b",$time,A,B,op,Y);
+
+    for(integer i=0;i<4;i=i+1)
+      for(integer j=0;j<4;j=j+1)
+        for(integer k=0;k<4;k=k+1) begin
+          A=i; B=j; op=k; #5;
+        end
+
+    $finish;
+  end
+endmodule
