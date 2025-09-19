@@ -1,0 +1,76 @@
+//==================== DATAFLOW MODEL ====================
+/*
+module demux1x8(input D, input [2:0] sel, output Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7);
+  assign Y0 = (~sel[2] & ~sel[1] & ~sel[0]) & D;
+  assign Y1 = (~sel[2] & ~sel[1] &  sel[0]) & D;
+  assign Y2 = (~sel[2] &  sel[1] & ~sel[0]) & D;
+  assign Y3 = (~sel[2] &  sel[1] &  sel[0]) & D;
+  assign Y4 = ( sel[2] & ~sel[1] & ~sel[0]) & D;
+  assign Y5 = ( sel[2] & ~sel[1] &  sel[0]) & D;
+  assign Y6 = ( sel[2] &  sel[1] & ~sel[0]) & D;
+  assign Y7 = ( sel[2] &  sel[1] &  sel[0]) & D;
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (if-else) ====================
+/*
+module demux1x8(input D, input [2:0] sel, output reg Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7);
+  always @(*) begin
+    Y0=0; Y1=0; Y2=0; Y3=0; Y4=0; Y5=0; Y6=0; Y7=0;
+    if(sel==3'b000) Y0 = D;
+    else if(sel==3'b001) Y1 = D;
+    else if(sel==3'b010) Y2 = D;
+    else if(sel==3'b011) Y3 = D;
+    else if(sel==3'b100) Y4 = D;
+    else if(sel==3'b101) Y5 = D;
+    else if(sel==3'b110) Y6 = D;
+    else if(sel==3'b111) Y7 = D;
+  end
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (case) ====================
+module demux1x8(input D, input [2:0] sel, output reg Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7);
+  always @(*) begin
+    Y0=0; Y1=0; Y2=0; Y3=0; Y4=0; Y5=0; Y6=0; Y7=0;
+    case(sel)
+      3'b000: Y0 = D;
+      3'b001: Y1 = D;
+      3'b010: Y2 = D;
+      3'b011: Y3 = D;
+      3'b100: Y4 = D;
+      3'b101: Y5 = D;
+      3'b110: Y6 = D;
+      3'b111: Y7 = D;
+      default: begin Y0=0;Y1=0;Y2=0;Y3=0;Y4=0;Y5=0;Y6=0;Y7=0; end
+    endcase
+  end
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg D;
+  reg [2:0] sel;
+  wire Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7;
+
+  demux1x8 dut(.D(D), .sel(sel), .Y0(Y0), .Y1(Y1), .Y2(Y2), .Y3(Y3), .Y4(Y4), .Y5(Y5), .Y6(Y6), .Y7(Y7));
+
+  initial begin
+    $dumpfile("demux1x8.vcd");
+    $dumpvars(0,tb);
+    $monitor("Time=%0t | D=%b | sel=%b | Y0=%b Y1=%b Y2=%b Y3=%b Y4=%b Y5=%b Y6=%b Y7=%b",
+              $time,D,sel,Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7);
+
+    D=1; sel=3'b000; #5;
+    sel=3'b001; #5;
+    sel=3'b010; #5;
+    sel=3'b011; #5;
+    sel=3'b100; #5;
+    sel=3'b101; #5;
+    sel=3'b110; #5;
+    sel=3'b111; #5;
+
+    D=0; sel=3'b000; #5;
+    $finish;
+  end
+endmodule
