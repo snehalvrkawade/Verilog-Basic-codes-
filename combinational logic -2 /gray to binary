@@ -1,0 +1,88 @@
+//==================== DATAFLOW MODEL ====================
+/*
+module gray2bin(
+  input [2:0] gray,
+  output [2:0] bin
+);
+  assign bin[2] = gray[2];
+  assign bin[1] = bin[2] ^ gray[1];
+  assign bin[0] = bin[1] ^ gray[0];
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (if-else) ====================
+/*
+module gray2bin(
+  input [2:0] gray,
+  output reg [2:0] bin
+);
+  always @(*) begin
+    bin[2] = gray[2];
+    bin[1] = bin[2] ^ gray[1];
+    bin[0] = bin[1] ^ gray[0];
+  end
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (case) ====================
+/*
+module gray2bin(
+  input [2:0] gray,
+  output reg [2:0] bin
+);
+  always @(*) begin
+    case(gray)
+      3'b000: bin = 3'b000;
+      3'b001: bin = 3'b001;
+      3'b011: bin = 3'b010;
+      3'b010: bin = 3'b011;
+      3'b110: bin = 3'b100;
+      3'b111: bin = 3'b101;
+      3'b101: bin = 3'b110;
+      3'b100: bin = 3'b111;
+      default: bin = 3'b000;
+    endcase
+  end
+endmodule
+*/
+
+//==================== STRUCTURAL MODEL ====================
+/*
+module gray2bin(
+  input [2:0] gray,
+  output [2:0] bin
+);
+  wire w1, w2;
+
+  // MSB
+  assign bin[2] = gray[2];
+  // XOR gates
+  xor u1(bin[1], bin[2], gray[1]);
+  xor u2(bin[0], bin[1], gray[0]);
+endmodule
+*/
+
+//==================== TESTBENCH ====================
+module tb;
+  reg [2:0] gray;
+  wire [2:0] bin;
+
+  gray2bin dut(.gray(gray), .bin(bin));
+
+  initial begin
+    $dumpfile("gray2bin.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | Gray=%b | Binary=%b", $time, gray, bin);
+
+    gray = 3'b000; #5;
+    gray = 3'b001; #5;
+    gray = 3'b010; #5;
+    gray = 3'b011; #5;
+    gray = 3'b100; #5;
+    gray = 3'b101; #5;
+    gray = 3'b110; #5;
+    gray = 3'b111; #5;
+
+    $finish;
+  end
+endmodule
