@@ -1,0 +1,53 @@
+//==================== DATAFLOW MODEL ====================
+
+module mux2x1(input a, b, sel, output y);
+  assign y = (sel) ? b : a;
+endmodule
+
+
+//==================== STRUCTURAL MODEL ====================
+
+module mux2x1(input a, b, sel, output y);
+  wire nsel, w1, w2;
+  not(nsel, sel);
+  and(w1, a, nsel);
+  and(w2, b, sel);
+  or(y, w1, w2);
+endmodule
+
+
+//==================== BEHAVIORAL MODEL ====================
+module mux2x1(input a, b, sel, output reg y);
+  always @(*) begin
+    if (sel == 0) 
+      y = a;
+    else 
+      y = b;
+  end
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg a, b, sel;
+  wire y;
+
+  mux2x1 dut(.a(a), .b(b), .sel(sel), .y(y));
+
+  initial begin
+    $dumpfile("mux2x1.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | a=%b | b=%b | sel=%b | y=%b", $time, a, b, sel, y);
+
+    a=0; b=0; sel=0; #5;
+    a=1; b=0; sel=0; #5;
+    a=0; b=1; sel=0; #5;
+    a=1; b=1; sel=0; #5;
+
+    a=0; b=0; sel=1; #5;
+    a=1; b=0; sel=1; #5;
+    a=0; b=1; sel=1; #5;
+    a=1; b=1; sel=1; #5;
+
+    $finish;
+  end
+endmodule
