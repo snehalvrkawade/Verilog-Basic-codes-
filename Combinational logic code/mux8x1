@@ -1,0 +1,86 @@
+//==================== DATAFLOW MODEL ====================
+/*
+module mux8x1(
+  input I0,I1,I2,I3,I4,I5,I6,I7,
+  input [2:0] sel,
+  output Y
+);
+  assign Y = (sel==3'b000)? I0 :
+             (sel==3'b001)? I1 :
+             (sel==3'b010)? I2 :
+             (sel==3'b011)? I3 :
+             (sel==3'b100)? I4 :
+             (sel==3'b101)? I5 :
+             (sel==3'b110)? I6 :
+             (sel==3'b111)? I7 : 1'b0;
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (if-else) ====================
+/*
+module mux8x1(
+  input I0,I1,I2,I3,I4,I5,I6,I7,
+  input [2:0] sel,
+  output reg Y
+);
+  always @(*) begin
+    if(sel==3'b000) Y = I0;
+    else if(sel==3'b001) Y = I1;
+    else if(sel==3'b010) Y = I2;
+    else if(sel==3'b011) Y = I3;
+    else if(sel==3'b100) Y = I4;
+    else if(sel==3'b101) Y = I5;
+    else if(sel==3'b110) Y = I6;
+    else if(sel==3'b111) Y = I7;
+    else Y = 1'b0;
+  end
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (case) ====================
+module mux8x1(
+  input I0,I1,I2,I3,I4,I5,I6,I7,
+  input [2:0] sel,
+  output reg Y
+);
+  always @(*) begin
+    case(sel)
+      3'b000: Y = I0;
+      3'b001: Y = I1;
+      3'b010: Y = I2;
+      3'b011: Y = I3;
+      3'b100: Y = I4;
+      3'b101: Y = I5;
+      3'b110: Y = I6;
+      3'b111: Y = I7;
+      default: Y = 1'b0;
+    endcase
+  end
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg I0,I1,I2,I3,I4,I5,I6,I7;
+  reg [2:0] sel;
+  wire Y;
+
+  mux8x1 dut(.I0(I0),.I1(I1),.I2(I2),.I3(I3),.I4(I4),.I5(I5),.I6(I6),.I7(I7),
+             .sel(sel),.Y(Y));
+
+  initial begin
+    $dumpfile("mux8x1.vcd");
+    $dumpvars(0,tb);
+    $monitor("Time=%0t | sel=%b | Y=%b", $time, sel, Y);
+
+    I0=0; I1=1; I2=0; I3=1; I4=0; I5=1; I6=0; I7=1;
+    sel=3'b000; #5;
+    sel=3'b001; #5;
+    sel=3'b010; #5;
+    sel=3'b011; #5;
+    sel=3'b100; #5;
+    sel=3'b101; #5;
+    sel=3'b110; #5;
+    sel=3'b111; #5;
+    $finish;
+  end
+endmodule
