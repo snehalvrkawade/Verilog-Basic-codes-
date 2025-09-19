@@ -1,0 +1,61 @@
+//================ RS LATCH USING NOR GATES =================
+
+//================ DATAFLOW MODEL =================
+/*
+module rs_latch(input R, S, output Q, Qbar);
+  assign Q    = ~(R | Qbar);   // NOR logic
+  assign Qbar = ~(S | Q);      // Cross-coupled NOR
+endmodule
+*/
+
+//================ BEHAVIORAL MODEL =================
+/*
+module rs_latch(input R, S, output reg Q, Qbar);
+  always @(*) begin
+    if(R==0 && S==0) begin
+      Q = Q; Qbar = Qbar;      // Hold
+    end
+    else if(R==0 && S==1) begin
+      Q = 1; Qbar = 0;         // Set
+    end
+    else if(R==1 && S==0) begin
+      Q = 0; Qbar = 1;         // Reset
+    end
+    else begin
+      Q = 1'bx; Qbar = 1'bx;   // Invalid
+    end
+  end
+endmodule
+*/
+
+//================ STRUCTURAL MODEL =================
+/*
+module rs_latch(input R, S, output Q, Qbar);
+  nor n1(Q, R, Qbar);   // NOR gate 1
+  nor n2(Qbar, S, Q);   // NOR gate 2
+endmodule
+*/
+
+//================ TESTBENCH =================
+module tb_rs_latch;
+  reg R, S;
+  wire Q, Qbar;
+
+  rs_latch dut(.R(R), .S(S), .Q(Q), .Qbar(Qbar));
+
+  initial begin
+    $dumpfile("rs_latch.vcd");
+    $dumpvars(0, tb_rs_latch);
+    $monitor("Time=%0t | R=%b S=%b | Q=%b Qbar=%b",
+              $time, R, S, Q, Qbar);
+
+    // Apply test cases
+    R=0; S=0; #5;  // Hold
+    R=0; S=1; #5;  // Set
+    R=0; S=0; #5;  // Hold
+    R=1; S=0; #5;  // Reset
+    R=0; S=0; #5;  // Hold
+    R=1; S=1; #5;  // Invalid
+    $finish;
+  end
+endmodule
