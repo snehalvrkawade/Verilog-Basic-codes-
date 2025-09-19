@@ -1,0 +1,54 @@
+//==================== DATAFLOW MODEL ====================
+/*
+module demux1x2(input D, sel, output Y0, Y1);
+  assign Y0 = (~sel) & D;
+  assign Y1 = sel & D;
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (if-else) ====================
+/*
+module demux1x2(input D, sel, output reg Y0, Y1);
+  always @(*) begin
+    if(sel==0) begin
+      Y0 = D;
+      Y1 = 0;
+    end else begin
+      Y0 = 0;
+      Y1 = D;
+    end
+  end
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (case) ====================
+module demux1x2(input D, sel, output reg Y0, Y1);
+  always @(*) begin
+    case(sel)
+      1'b0: begin Y0 = D; Y1 = 0; end
+      1'b1: begin Y0 = 0; Y1 = D; end
+      default: begin Y0 = 0; Y1 = 0; end
+    endcase
+  end
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg D, sel;
+  wire Y0, Y1;
+
+  demux1x2 dut(.D(D), .sel(sel), .Y0(Y0), .Y1(Y1));
+
+  initial begin
+    $dumpfile("demux1x2.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | D=%b | sel=%b | Y0=%b | Y1=%b", $time, D, sel, Y0, Y1);
+
+    D=0; sel=0; #5;
+    D=1; sel=0; #5;
+    D=0; sel=1; #5;
+    D=1; sel=1; #5;
+
+    $finish;
+  end
+endmodule
