@@ -1,0 +1,59 @@
+
+//------------- Dataflow Model ---------------
+/*
+module priority_encoder(input [3:0] I, output y1, y0, valid);
+  assign valid = |I;
+  assign y1 = I[2] | I[3];
+  assign y0 = I[1] | I[3];
+endmodule
+*/
+
+//------------- Structural Model ---------------
+
+module priority_encoder(input [3:0] I, output y1, y0, valid);
+  or(valid, I[0], I[1], I[2], I[3]);
+  or(y1, I[2], I[3]);
+  or(y0, I[1], I[3]);
+endmodule
+
+
+//Behavioral Model 
+module priority_encoder(input [3:0] I, output reg y1, y0, valid);
+  always @(*) begin
+    valid = 1'b1;
+    casex(I)
+      4'b1xxx: {y1,y0} = 2'b11;
+      4'b01xx: {y1,y0} = 2'b10;
+      4'b001x: {y1,y0} = 2'b01;
+      4'b0001: {y1,y0} = 2'b00;
+      default: begin
+        {y1,y0} = 2'b00;
+        valid = 1'b0;
+      end
+    endcase
+  end
+endmodule
+
+// Testbench (same for all styles)
+module tb;
+  reg [3:0] I;
+  wire y0,y1,valid;
+
+  priority_encoder dut(.I(I), .y0(y0), .y1(y1), .valid(valid));
+
+  initial begin
+    $dumpfile("priority_encoder.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | I=%b | y1=%b | y0=%b | valid=%b",
+              $time,I,y1,y0,valid);
+
+    I = 4'b0000; #5;
+    I = 4'b0001; #5;
+    I = 4'b0010; #5;
+    I = 4'b0100; #5;
+    I = 4'b1000; #5;
+    I = 4'b1100; #5;
+    I = 4'b1010; #5;
+    $finish;
+  end
+endmodule
