@@ -1,0 +1,58 @@
+//==================== DATAFLOW MODEL ====================
+/*
+module mux4x1(input [3:0] d, input [1:0] sel, output y);
+  assign y = (sel == 2'b00) ? d[0] :
+             (sel == 2'b01) ? d[1] :
+             (sel == 2'b10) ? d[2] :
+                              d[3];
+endmodule
+*/
+
+//==================== STRUCTURAL MODEL ====================
+/*
+module mux4x1(input [3:0] d, input [1:0] sel, output y);
+  wire w1, w2;
+  mux2x1 m1(.a(d[0]), .b(d[1]), .sel(sel[0]), .y(w1));
+  mux2x1 m2(.a(d[2]), .b(d[3]), .sel(sel[0]), .y(w2));
+  mux2x1 m3(.a(w1),  .b(w2),  .sel(sel[1]), .y(y));
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL ====================
+module mux4x1(input [3:0] d, input [1:0] sel, output reg y);
+  always @(*) begin
+    case(sel)
+      2'b00: y = d[0];
+      2'b01: y = d[1];
+      2'b10: y = d[2];
+      2'b11: y = d[3];
+    endcase
+  end
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg [3:0] d;
+  reg [1:0] sel;
+  wire y;
+
+  mux4x1 dut(.d(d), .sel(sel), .y(y));
+
+  initial begin
+    $dumpfile("mux4x1.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | d=%b | sel=%b | y=%b", $time, d, sel, y);
+
+    d = 4'b0001; sel = 2'b00; #5;
+    d = 4'b0010; sel = 2'b01; #5;
+    d = 4'b0100; sel = 2'b10; #5;
+    d = 4'b1000; sel = 2'b11; #5;
+
+    d = 4'b1010; sel = 2'b00; #5;
+    d = 4'b1010; sel = 2'b01; #5;
+    d = 4'b1010; sel = 2'b10; #5;
+    d = 4'b1010; sel = 2'b11; #5;
+
+    $finish;
+  end
+endmodule
