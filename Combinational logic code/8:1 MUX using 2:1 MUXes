@@ -1,0 +1,43 @@
+//==================== 2:1 MUX (Reusable) ====================
+module mux2x1(input a,b,sel,output y);
+  assign y = sel ? b : a;
+endmodule
+
+//==================== 8:1 MUX using 2:1 MUXes ====================
+module mux8x1(
+  input I0,I1,I2,I3,I4,I5,I6,I7,
+  input [2:0] sel,
+  output Y
+);
+  wire w1,w2,w3,w4,w5,w6;
+
+  // First stage (4 pairs)
+  mux2x1 m1(.a(I0), .b(I1), .sel(sel[0]), .y(w1));
+  mux2x1 m2(.a(I2), .b(I3), .sel(sel[0]), .y(w2));
+  mux2x1 m3(.a(I4), .b(I5), .sel(sel[0]), .y(w3));
+  mux2x1 m4(.a(I6), .b(I7), .sel(sel[0]), .y(w4));
+
+  // Second stage (2 pairs)
+  mux2x1 m5(.a(w1), .b(w2), .sel(sel[1]), .y(w5));
+  mux2x1 m6(.a(w3), .b(w4), .sel(sel[1]), .y(w6));
+
+  // Third stage (final)
+  mux2x1 m7(.a(w5), .b(w6), .sel(sel[2]), .y(Y));
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg I0,I1,I2,I3,I4,I5,I6,I7;
+  reg [2:0] sel;
+  wire Y;
+
+  mux8x1 dut(.I0(I0), .I1(I1), .I2(I2), .I3(I3), .I4(I4), .I5(I5), .I6(I6), .I7(I7),
+             .sel(sel), .Y(Y));
+
+  initial begin
+    $dumpfile("mux8x1.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | I0=%b I1=%b I2=%b I3=%b I4=%b I5=%b I6=%b I7=%b sel=%b | Y=%b",
+              $time, I0,I1,I2,I3,I4,I5,I6,I7, sel, Y);
+
+    I0=0; I1=1; I2=0; I3=1; I4=0; I5
