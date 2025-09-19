@@ -1,0 +1,56 @@
+//==================== 4:1 MUX (Reusable) ====================
+module mux4x1(
+  input I0,I1,I2,I3,
+  input [1:0] sel,
+  output Y
+);
+  assign Y = (sel==2'b00)? I0 :
+             (sel==2'b01)? I1 :
+             (sel==2'b10)? I2 :
+             (sel==2'b11)? I3 : 1'b0;
+endmodule
+
+//==================== 8:1 MUX using 4:1 MUX ====================
+module mux8x1(
+  input I0,I1,I2,I3,I4,I5,I6,I7,
+  input [2:0] sel,
+  output Y
+);
+  wire w1,w2;
+
+  // First stage: two 4:1 MUXes
+  mux4x1 m1(.I0(I0), .I1(I1), .I2(I2), .I3(I3), .sel(sel[1:0]), .Y(w1));
+  mux4x1 m2(.I0(I4), .I1(I5), .I2(I6), .I3(I7), .sel(sel[1:0]), .Y(w2));
+
+  // Second stage: final 2:1 MUX
+  assign Y = sel[2] ? w2 : w1;
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg I0,I1,I2,I3,I4,I5,I6,I7;
+  reg [2:0] sel;
+  wire Y;
+
+  mux8x1 dut(.I0(I0),.I1(I1),.I2(I2),.I3(I3),.I4(I4),.I5(I5),.I6(I6),.I7(I7),
+             .sel(sel),.Y(Y));
+
+  initial begin
+    $dumpfile("mux8x1.vcd");
+    $dumpvars(0,tb);
+    $monitor("Time=%0t | sel=%b | Y=%b", $time, sel, Y);
+
+    I0=0; I1=1; I2=0; I3=1; I4=0; I5=1; I6=0; I7=1;
+
+    sel=3'b000; #5;
+    sel=3'b001; #5;
+    sel=3'b010; #5;
+    sel=3'b011; #5;
+    sel=3'b100; #5;
+    sel=3'b101; #5;
+    sel=3'b110; #5;
+    sel=3'b111; #5;
+
+    $finish;
+  end
+endmodule
