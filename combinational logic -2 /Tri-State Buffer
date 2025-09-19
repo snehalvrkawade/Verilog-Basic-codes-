@@ -1,0 +1,21 @@
+//==================== Tri-State Buffer ====================
+/*
+module tristate_buf(input A, EN, output Y);
+  assign Y = EN ? A : 1'bz; // high impedance when EN=0
+endmodule
+*/
+
+// Testbench
+module tb_tristate_buf;
+  reg A,EN;
+  wire Y;
+  tristate_buf dut(.A(A),.EN(EN),.Y(Y));
+  initial begin
+    $dumpfile("tristate_buf.vcd");
+    $dumpvars(0,tb_tristate_buf);
+    $monitor("Time=%0t | A=%b EN=%b | Y=%b",$time,A,EN,Y);
+    A=0; EN=0; #5; A=1; EN=0; #5;
+    A=0; EN=1; #5; A=1; EN=1; #5;
+    $finish;
+  end
+endmodule
