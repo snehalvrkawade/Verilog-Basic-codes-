@@ -1,0 +1,47 @@
+//==================== 2:1 MUX (Reusable) ====================
+module mux2x1(input a,b,sel,output y);
+  assign y = sel ? b : a;
+endmodule
+
+//==================== 4:1 MUX using 2:1 MUX ====================
+module mux4x1(input I0,I1,I2,I3, input [1:0] sel, output Y);
+  wire w1, w2;
+  
+  // First stage (2:1 MUXes)
+  mux2x1 m1(.a(I0), .b(I1), .sel(sel[0]), .y(w1));
+  mux2x1 m2(.a(I2), .b(I3), .sel(sel[0]), .y(w2));
+
+  // Second stage (final 2:1 MUX)
+  mux2x1 m3(.a(w1), .b(w2), .sel(sel[1]), .y(Y));
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg I0,I1,I2,I3;
+  reg [1:0] sel;
+  wire Y;
+
+  mux4x1 dut(.I0(I0), .I1(I1), .I2(I2), .I3(I3), .sel(sel), .Y(Y));
+
+  initial begin
+    $dumpfile("mux4x1.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | I0=%b I1=%b I2=%b I3=%b sel=%b | Y=%b", 
+              $time, I0, I1, I2, I3, sel, Y);
+
+    // Test all combinations
+    I0=0; I1=1; I2=0; I3=1;
+    sel=2'b00; #5;
+    sel=2'b01; #5;
+    sel=2'b10; #5;
+    sel=2'b11; #5;
+
+    I0=1; I1=0; I2=1; I3=0;
+    sel=2'b00; #5;
+    sel=2'b01; #5;
+    sel=2'b10; #5;
+    sel=2'b11; #5;
+
+    $finish;
+  end
+endmodule
