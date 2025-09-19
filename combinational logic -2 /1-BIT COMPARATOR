@@ -1,0 +1,24 @@
+//==================== 1-BIT COMPARATOR (Structural) ====================
+module comparator1bit(
+  input A, B,
+  output Equal, A_greater_B, B_greater_A
+);
+  wire notA, notB;
+  wire AandNotB, NotAandB;
+  wire AxorB;
+
+  // NOT gates
+  not u1(notA, A);
+  not u2(notB, B);
+
+  // AND gates
+  and u3(AandNotB, A, notB); // A > B
+  and u4(NotAandB, notA, B); // B > A
+  and u5(AxorB, A, notB);    // Intermediate for Equal
+  xor u6(Equal, A, B);       // Actually Equal = ~(A^B)
+  not u7(Equal, Equal);
+
+  // Assign greater outputs
+  assign A_greater_B = AandNotB;
+  assign B_greater_A = NotAandB;
+endmodule
