@@ -1,0 +1,66 @@
+//==================== DATAFLOW MODEL ====================
+/*
+module encoder83(input [7:0] I, output y2, y1, y0, valid);
+  assign valid = |I;
+  assign y2 = I[4] | I[5] | I[6] | I[7];
+  assign y1 = I[2] | I[3] | I[6] | I[7];
+  assign y0 = I[1] | I[3] | I[5] | I[7];
+endmodule
+*/
+
+//==================== STRUCTURAL MODEL ====================
+/*
+module encoder83(input [7:0] I, output y2, y1, y0, valid);
+  or(valid, I[0],I[1],I[2],I[3],I[4],I[5],I[6],I[7]);
+  or(y2, I[4],I[5],I[6],I[7]);
+  or(y1, I[2],I[3],I[6],I[7]);
+  or(y0, I[1],I[3],I[5],I[7]);
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL ====================
+module encoder83(input [7:0] I, output reg y2, y1, y0, valid);
+  always @(*) begin
+    valid = 1'b1;
+    casex(I)
+      8'b1xxxxxxx: {y2,y1,y0} = 3'b111;
+      8'b01xxxxxx: {y2,y1,y0} = 3'b110;
+      8'b001xxxxx: {y2,y1,y0} = 3'b101;
+      8'b0001xxxx: {y2,y1,y0} = 3'b100;
+      8'b00001xxx: {y2,y1,y0} = 3'b011;
+      8'b000001xx: {y2,y1,y0} = 3'b010;
+      8'b0000001x: {y2,y1,y0} = 3'b001;
+      8'b00000001: {y2,y1,y0} = 3'b000;
+      default: begin
+        {y2,y1,y0} = 3'b000;
+        valid = 1'b0;
+      end
+    endcase
+  end
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg [7:0] I;
+  wire y0,y1,y2,valid;
+
+  encoder83 dut(.I(I), .y0(y0), .y1(y1), .y2(y2), .valid(valid));
+
+  initial begin
+    $dumpfile("encoder83.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | I=%b | y2=%b | y1=%b | y0=%b | valid=%b",
+              $time,I,y2,y1,y0,valid);
+
+    I = 8'b00000001; #5;
+    I = 8'b00000010; #5;
+    I = 8'b00000100; #5;
+    I = 8'b00001000; #5;
+    I = 8'b00010000; #5;
+    I = 8'b00100000; #5;
+    I = 8'b01000000; #5;
+    I = 8'b10000000; #5;
+    I = 8'b00000000; #5;  // no input active
+    $finish;
+  end
+endmodule
