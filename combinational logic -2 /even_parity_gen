@@ -1,0 +1,71 @@
+//==================== DATAFLOW MODEL ====================
+/*
+module even_parity_gen(
+  input A, B,
+  output P
+);
+  assign P = A ^ B; // Even parity: XOR of inputs
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (if-else) ====================
+/*
+module even_parity_gen(
+  input A, B,
+  output reg P
+);
+  always @(*) begin
+    if(A ^ B) P = 1;
+    else P = 0;
+  end
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL (case) ====================
+/*
+module even_parity_gen(
+  input A, B,
+  output reg P
+);
+  always @(*) begin
+    case({A,B})
+      2'b00: P = 0;
+      2'b01: P = 1;
+      2'b10: P = 1;
+      2'b11: P = 0;
+      default: P = 0;
+    endcase
+  end
+endmodule
+*/
+
+//==================== STRUCTURAL MODEL ====================
+/*
+module even_parity_gen(
+  input A, B,
+  output P
+);
+  xor u1(P, A, B); // XOR for even parity
+endmodule
+*/
+
+//==================== TESTBENCH ====================
+module tb;
+  reg A, B;
+  wire P;
+
+  even_parity_gen dut(.A(A), .B(B), .P(P));
+
+  initial begin
+    $dumpfile("even_parity_gen.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | A=%b | B=%b | Even Parity=%b", $time, A, B, P);
+
+    A=0; B=0; #5;
+    A=0; B=1; #5;
+    A=1; B=0; #5;
+    A=1; B=1; #5;
+
+    $finish;
+  end
+endmodule
