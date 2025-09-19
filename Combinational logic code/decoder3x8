@@ -1,0 +1,73 @@
+//==================== DATAFLOW MODEL ====================
+/*
+module decoder38(input [2:0] I, output [7:0] Y);
+  assign Y[0] = ~I[2] & ~I[1] & ~I[0];
+  assign Y[1] = ~I[2] & ~I[1] &  I[0];
+  assign Y[2] = ~I[2] &  I[1] & ~I[0];
+  assign Y[3] = ~I[2] &  I[1] &  I[0];
+  assign Y[4] =  I[2] & ~I[1] & ~I[0];
+  assign Y[5] =  I[2] & ~I[1] &  I[0];
+  assign Y[6] =  I[2] &  I[1] & ~I[0];
+  assign Y[7] =  I[2] &  I[1] &  I[0];
+endmodule
+*/
+
+//==================== STRUCTURAL MODEL ====================
+/*
+module decoder38(input [2:0] I, output [7:0] Y);
+  wire n0, n1, n2;
+  not(n0, I[0]);
+  not(n1, I[1]);
+  not(n2, I[2]);
+
+  and(Y[0], n2, n1, n0);
+  and(Y[1], n2, n1, I[0]);
+  and(Y[2], n2, I[1], n0);
+  and(Y[3], n2, I[1], I[0]);
+  and(Y[4], I[2], n1, n0);
+  and(Y[5], I[2], n1, I[0]);
+  and(Y[6], I[2], I[1], n0);
+  and(Y[7], I[2], I[1], I[0]);
+endmodule
+*/
+
+//==================== BEHAVIORAL MODEL ====================
+module decoder38(input [2:0] I, output reg [7:0] Y);
+  always @(*) begin
+    case(I)
+      3'b000: Y = 8'b00000001;
+      3'b001: Y = 8'b00000010;
+      3'b010: Y = 8'b00000100;
+      3'b011: Y = 8'b00001000;
+      3'b100: Y = 8'b00010000;
+      3'b101: Y = 8'b00100000;
+      3'b110: Y = 8'b01000000;
+      3'b111: Y = 8'b10000000;
+      default: Y = 8'b00000000;
+    endcase
+  end
+endmodule
+
+//==================== TESTBENCH ====================
+module tb;
+  reg [2:0] I;
+  wire [7:0] Y;
+
+  decoder38 dut(.I(I), .Y(Y));
+
+  initial begin
+    $dumpfile("decoder38.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | I=%b | Y=%b", $time, I, Y);
+
+    I = 3'b000; #5;
+    I = 3'b001; #5;
+    I = 3'b010; #5;
+    I = 3'b011; #5;
+    I = 3'b100; #5;
+    I = 3'b101; #5;
+    I = 3'b110; #5;
+    I = 3'b111; #5;
+    $finish;
+  end
+endmodule
