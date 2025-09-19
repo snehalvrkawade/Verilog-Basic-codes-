@@ -1,37 +1,39 @@
 //==================== DATAFLOW MODEL ====================
 /*
-module odd_parity(
-  input D,
+module odd_parity_gen(
+  input A, B,
   output P
 );
-  assign P = ~D;  // Odd parity for 1-bit input
+  assign P = ~(A ^ B); // Odd parity: XOR of inputs inverted
 endmodule
 */
 
 //==================== BEHAVIORAL MODEL (if-else) ====================
 /*
-module odd_parity(
-  input D,
+module odd_parity_gen(
+  input A, B,
   output reg P
 );
   always @(*) begin
-    if(D==0) P=1;
-    else P=0;
+    if(A ^ B) P = 0;
+    else P = 1;
   end
 endmodule
 */
 
 //==================== BEHAVIORAL MODEL (case) ====================
 /*
-module odd_parity(
-  input D,
+module odd_parity_gen(
+  input A, B,
   output reg P
 );
   always @(*) begin
-    case(D)
-      1'b0: P = 1;
-      1'b1: P = 0;
-      default: P = 1;
+    case({A,B})
+      2'b00: P = 1;
+      2'b01: P = 0;
+      2'b10: P = 0;
+      2'b11: P = 1;
+      default: P = 0;
     endcase
   end
 endmodule
@@ -39,30 +41,33 @@ endmodule
 
 //==================== STRUCTURAL MODEL ====================
 /*
-module odd_parity(
-  input D,
+module odd_parity_gen(
+  input A, B,
   output P
 );
-  wire notD;
-  not u1(notD, D);
-  assign P = notD;
+  wire w;
+
+  xor u1(w, A, B);  // XOR
+  not u2(P, w);     // Invert for odd parity
 endmodule
 */
 
 //==================== TESTBENCH ====================
 module tb;
-  reg D;
+  reg A, B;
   wire P;
 
-  odd_parity dut(.D(D), .P(P));
+  odd_parity_gen dut(.A(A), .B(B), .P(P));
 
   initial begin
-    $dumpfile("odd_parity.vcd");
+    $dumpfile("odd_parity_gen.vcd");
     $dumpvars(0, tb);
-    $monitor("Time=%0t | D=%b | Odd Parity P=%b", $time, D, P);
+    $monitor("Time=%0t | A=%b | B=%b | Odd Parity=%b", $time, A, B, P);
 
-    D=0; #5;
-    D=1; #5;
+    A=0; B=0; #5;
+    A=0; B=1; #5;
+    A=1; B=0; #5;
+    A=1; B=1; #5;
 
     $finish;
   end
