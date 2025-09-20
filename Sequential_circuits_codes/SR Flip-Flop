@@ -1,0 +1,97 @@
+//====================================
+// SR Flip-Flop - Dataflow Modeling
+//====================================
+module sr_ff_df(input S, input R, input clk, output reg Q, output Qbar);
+  always @(posedge clk) begin
+    Q <= (S & ~R) ? 1'b1 : (~S & R) ? 1'b0 : Q;
+  end
+  assign Qbar = ~Q;
+endmodule
+
+//====================================
+// SR Flip-Flop - Structural Modeling
+// (Using basic D FF idea)
+//====================================
+module sr_ff_str(input S, input R, input clk, output Q, output Qbar);
+  wire D;
+  assign D = S | (~R & Q);  // SR → equivalent D expression
+  d_ff d1(.D(D), .clk(clk), .Q(Q), .Qbar(Qbar));
+endmodule
+
+// Simple D Flip-Flop for structural use
+module d_ff(input D, input clk, output reg Q, output Qbar);
+  always @(posedge clk)
+    Q <= D;
+  assign Qbar = ~Q;
+endmodule
+
+//====================================
+// SR Flip-Flop - Behavioral (If Statement)
+//====================================
+module sr_ff_if(input S, input R, input clk, output reg Q, output reg Qbar);
+  always @(posedge clk) begin
+    if (S & ~R) begin
+      Q <= 1;
+      Qbar <= 0;
+    end
+    else if (~S & R) begin
+      Q <= 0;
+      Qbar <= 1;
+    end
+    else if (~S & ~R) begin
+      Q <= Q;     // Hold
+      Qbar <= Qbar;
+    end
+    else begin
+      Q <= 1'bx;  // Invalid (S=R=1)
+      Qbar <= 1'bx;
+    end
+  end
+endmodule
+
+//====================================
+// SR Flip-Flop - Behavioral (Case Statement)
+//====================================
+module sr_ff_case(input S, input R, input clk, output reg Q, output reg Qbar);
+  always @(posedge clk) begin
+    case ({S,R})
+      2'b10: begin Q <= 1; Qbar <= 0; end   // Set
+      2'b01: begin Q <= 0; Qbar <= 1; end   // Reset
+      2'b00: begin Q <= Q; Qbar <= Qbar; end// Hold
+      2'b11: begin Q <= 1'bx; Qbar <= 1'bx; end // Invalid
+    endcase
+  end
+endmodule
+
+//====================================
+// TESTBENCH (Common for all styles)
+//====================================
+module tb_sr_ff;
+  reg S, R, clk;
+  wire Q, Qbar;
+
+  // 👉 Change module name here for testing:
+  // sr_ff_df / sr_ff_str / sr_ff_if / sr_ff_case
+  sr_ff_case dut(.S(S), .R(R), .clk(clk), .Q(Q), .Qbar(Qbar));
+
+  // Clock generation
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk;
+  end
+
+  initial begin
+    $dumpfile("sr_ff.vcd");
+    $dumpvars(0, tb_sr_ff);
+    $monitor("T=%0t | clk=%b | S=%b | R=%b | Q=%b | Qbar=%b", 
+              $time, clk, S, R, Q, Qbar);
+
+    // Test cases
+    S=0; R=0; #10;   // Hold
+    S=1; R=0; #10;   // Set
+    S=0; R=1; #10;   // Reset
+    S=1; R=1; #10;   // Invalid
+
+    $finish;
+  end
+endmodule
