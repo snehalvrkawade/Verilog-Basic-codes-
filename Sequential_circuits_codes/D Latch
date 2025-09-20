@@ -1,0 +1,76 @@
+//====================================
+// D Latch - Dataflow Modeling
+//====================================
+module d_latch_df(input D, input En, output Q, output Qbar);
+  assign Q  = En ? D : Q;    // Transparent when En=1
+  assign Qbar = ~Q;
+endmodule
+
+//====================================
+// D Latch - Structural Modeling
+//====================================
+module d_latch_str(input D, input En, output Q, output Qbar);
+  wire R, S;
+  
+  assign S = En & D;     // Set input
+  assign R = En & ~D;    // Reset input
+
+  assign Q  = ~(R | Qbar);
+  assign Qbar = ~(S | Q);
+endmodule
+
+//====================================
+// D Latch - Behavioral (If Statement)
+//====================================
+module d_latch_if(input D, input En, output reg Q, output reg Qbar);
+  always @(*) begin
+    if (En) begin
+      Q = D;
+      Qbar = ~D;
+    end
+  end
+endmodule
+
+//====================================
+// D Latch - Behavioral (Case Statement)
+//====================================
+module d_latch_case(input D, input En, output reg Q, output reg Qbar);
+  always @(*) begin
+    case (En)
+      1'b0: begin 
+              Q = Q;      // Hold previous value
+              Qbar = Qbar;
+            end
+      1'b1: begin 
+              Q = D; 
+              Qbar = ~D; 
+            end
+    endcase
+  end
+endmodule
+
+//====================================
+// TESTBENCH (Common for all styles)
+//====================================
+module tb_d_latch;
+  reg D, En;
+  wire Q, Qbar;
+
+  // Change module name here for testing:
+  // d_latch_df / d_latch_str / d_latch_if / d_latch_case
+  d_latch_case dut(.D(D), .En(En), .Q(Q), .Qbar(Qbar));
+
+  initial begin
+    $dumpfile("d_latch.vcd");
+    $dumpvars(0, tb_d_latch);
+    $monitor("T=%0t | En=%b | D=%b | Q=%b | Qbar=%b", $time, En, D, Q, Qbar);
+
+    // Test cases
+    En=0; D=0; #5;
+    En=1; D=0; #5;
+    En=1; D=1; #5;
+    En=0; D=1; #5;
+    En=1; D=0; #5;
+    $finish;
+  end
+endmodule
