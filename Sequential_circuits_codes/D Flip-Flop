@@ -1,0 +1,93 @@
+//====================================
+// D Flip-Flop - Dataflow Modeling
+//====================================
+module dff_df(input D, input clk, output reg Q, output Qbar);
+  always @(posedge clk)
+   begin
+    Q <= D;        // Direct transfer
+   end
+  assign Qbar = ~Q;
+endmodule
+
+//====================================
+// D Flip-Flop - Structural Modeling
+// (Built using a D-Latch pair for Master-Slave)
+//====================================
+module dff_str(input D, input clk, output Q, output Qbar);
+  wire qm, qmb; // master latch outputs
+
+  // Master latch (negative level)
+  d_latch master(.D(D), .En(~clk), .Q(qm), .Qbar(qmb));
+  // Slave latch (positive level)
+  d_latch slave(.D(qm), .En(clk), .Q(Q), .Qbar(Qbar));
+endmodule
+
+// Simple D latch for structural use
+module d_latch(input D, input En, output reg Q, output Qbar);
+  always @(*) begin
+    if (En)
+      Q = D;
+  end
+  assign Qbar = ~Q;
+endmodule
+
+//====================================
+// D Flip-Flop - Behavioral (If Statement)
+//====================================
+module dff_if(input D, input clk, output reg Q, output reg Qbar);
+  always @(posedge clk) begin
+    if (D) begin
+      Q <= 1;
+      Qbar <= 0;
+    end
+    else begin
+      Q <= 0;
+      Qbar <= 1;
+    end
+  end
+endmodule
+
+//====================================
+// D Flip-Flop - Behavioral (Case Statement)
+//====================================
+module dff_case(input D, input clk, output reg Q, output reg Qbar);
+  always @(posedge clk) begin
+    case (D)
+      1'b0: begin Q <= 0; Qbar <= 1; end
+      1'b1: begin Q <= 1; Qbar <= 0; end
+    endcase
+  end
+endmodule
+
+//====================================
+// TESTBENCH (Common for all styles)
+//====================================
+module tb_dff;
+  reg D, clk;
+  wire Q, Qbar;
+
+  //  Change module name here for testing:
+  // dff_df / dff_str / dff_if / dff_case
+  dff_case dut(.D(D), .clk(clk), .Q(Q), .Qbar(Qbar));
+
+  // Clock generation
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk;  // 10 time units period
+  end
+
+  initial begin
+    $dumpfile("dff.vcd");
+    $dumpvars(0, tb_dff);
+    $monitor("T=%0t | clk=%b | D=%b | Q=%b | Qbar=%b",
+              $time, clk, D, Q, Qbar);
+
+    // Test cases
+    D=0; #10;
+    D=1; #10;
+    D=0; #10;
+    D=1; #10;
+
+    $finish;
+  end
+endmodule
