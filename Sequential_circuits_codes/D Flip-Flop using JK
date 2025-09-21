@@ -1,0 +1,49 @@
+//================ JK Flip-Flop =================
+module jkff(input j, k, clk, output reg q, output qb);
+  always @(posedge clk) begin
+    case ({j,k})
+      2'b00: q <= q;       // hold
+      2'b01: q <= 0;       // reset
+      2'b10: q <= 1;       // set
+      2'b11: q <= ~q;      // toggle
+    endcase
+  end
+  assign qb = ~q;
+endmodule
+
+//================ D Flip-Flop using JK =================
+module d_using_jk(input d, clk, output q, output qb);
+  wire j, k;
+  assign j = d;
+  assign k = ~d;
+  jkff jk1(.j(j), .k(k), .clk(clk), .q(q), .qb(qb));
+endmodule
+
+//================ TESTBENCH =================
+module tb_d_using_jk;
+  reg clk, d;
+  wire q, qb;
+
+  d_using_jk dut(.d(d), .clk(clk), .q(q), .qb(qb));
+
+  // clock generation
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk; // period = 10
+  end
+
+  initial begin
+    $dumpfile("d_using_jk.vcd");
+    $dumpvars(0, tb_d_using_jk);
+    $monitor("Time=%0t | D=%b | Q=%b | Qbar=%b", $time, d, q, qb);
+
+    d=0; #10;   // Q=0
+    d=1; #10;   // Q=1
+    d=1; #10;   // Q=1 hold
+    d=0; #10;   // Q=0
+    d=1; #10;   // Q=1
+    d=0; #10;   // Q=0
+
+    $finish;
+  end
+endmodule
