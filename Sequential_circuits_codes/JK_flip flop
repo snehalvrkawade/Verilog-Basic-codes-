@@ -1,0 +1,107 @@
+// -------------------------
+// 1) Dataflow-style 
+// -------------------------
+module jkff(input j, k, clk, output reg q, output qb);
+  wire d;
+  assign d = (j & ~q) | (~k & q);
+  always @(posedge clk) q <= d;
+  assign qb = ~q;
+endmodule
+
+// -------------------------
+// 2) Structural-style (uses a separate D-FF module)
+// -------------------------
+
+module dff_for_struct(input d, input clk, output reg q);
+  always @(posedge clk) q <= d;
+endmodule
+
+module jkff(input j, k, clk, output q, output qb);
+  wire d;
+  wire q_wire;
+  assign d = (j & ~q_wire) | (~k & q_wire);
+  dff_for_struct dff_inst(.d(d), .clk(clk), .q(q_wire));
+  assign q = q_wire;
+  assign qb = ~q_wire;
+endmodule
+
+
+// -------------------------
+// 3) Behavioral (if-else) - RTL style
+// -------------------------
+
+module jkff(input j, k, clk, output reg q, output reg qb);
+  always @(posedge clk) begin
+    if (j==0 && k==0) begin
+      q  <= q;    // hold
+      qb <= qb;
+    end
+    else if (j==0 && k==1) begin
+      q  <= 0;    // reset
+      qb <= 1;
+    end
+    else if (j==1 && k==0) begin
+      q  <= 1;    // set
+      qb <= 0;
+    end
+    else begin
+      q  <= ~q;   // toggle
+      qb <= ~qb;
+    end
+  end
+endmodule
+*/
+
+// -------------------------
+// 4) Behavioral (case) - RTL style
+// -------------------------
+module jkff(input j, k, clk, output reg q, output reg qb);
+  always @(posedge clk) begin
+    case ({j,k})
+      2'b00: begin q <= q;  qb <= qb; end
+      2'b01: begin q <= 0;  qb <= 1; end
+      2'b10: begin q <= 1;  qb <= 0; end
+      2'b11: begin q <= ~q; qb <= ~qb; end
+    endcase
+  end
+endmodule
+
+// -------------------------
+ Testbench 
+// -------------------------
+module tb_jkff;
+  reg j, k, clk;
+  wire q, qb;
+
+  jkff dut(.j(j), .k(k), .clk(clk), .q(q), .qb(qb));
+
+  // clock
+  initial clk = 0;
+  always #5 clk = ~clk; // period = 10
+
+  initial begin
+    $dumpfile("jkff.vcd");
+    $dumpvars(0, tb_jkff);
+    $display("Time | clk j k | q qb");
+    $monitor("%4t |  %b   %b %b | %b  %b", $time, clk, j, k, q, qb);
+
+    // Initialize
+    j = 0; k = 0; #10;   // hold
+    // Set
+    j = 1; k = 0; #10;   // q -> 1
+    j = 0; k = 0; #10;   // hold
+    // Reset
+    j = 0; k = 1; #10;   // q -> 0
+    j = 0; k = 0; #10;   // hold
+    // Toggle some toggles
+    j = 1; k = 1; #10;   // toggle
+    j = 1; k = 1; #10;   // toggle again
+    // Mixed sequences
+    j = 1; k = 0; #10;   // set
+    j = 0; k = 1; #10;   // reset
+    j = 1; k = 1; #10;   // toggle
+    j = 0; k = 0; #10;   // hold
+
+    $finish;
+  end
+endmodule
