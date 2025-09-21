@@ -1,0 +1,48 @@
+//================ D Latch =================
+module dlatch(input d, input en, output reg q);
+  always @(*) begin
+    if (en)
+      q = d;  // transparent when en=1
+  end
+endmodule
+
+//================ Master-Slave D Flip-Flop =================
+module ms_dff(input d, input clk, output q, output qb);
+  wire qm;  // master latch output
+
+  // Master latch (clk high)
+  dlatch master(.d(d), .en(clk), .q(qm));
+
+  // Slave latch (clk low = ~clk)
+  dlatch slave(.d(qm), .en(~clk), .q(q));
+
+  assign qb = ~q;
+endmodule
+
+//================ TESTBENCH =================
+module tb_ms_dff;
+  reg clk, d;
+  wire q, qb;
+
+  ms_dff dut(.d(d), .clk(clk), .q(q), .qb(qb));
+
+  // Clock generation
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk;  // period = 10
+  end
+
+  initial begin
+    $dumpfile("ms_dff.vcd");
+    $dumpvars(0, tb_ms_dff);
+    $monitor("Time=%0t | D=%b | Q=%b | Qbar=%b", $time, d, q, qb);
+
+    // Test sequence
+    d=0; #7;    // master captures D=0 on clk high
+    d=1; #10;   // master captures D=1 on next clk high
+    d=0; #10;   // master captures D=0
+    d=1; #10;   // master captures D=1
+
+    $finish;
+  end
+endmodule
