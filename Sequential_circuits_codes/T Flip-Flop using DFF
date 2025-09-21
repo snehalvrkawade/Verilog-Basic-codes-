@@ -1,0 +1,45 @@
+//================ D Flip-Flop =================
+module dff(input d, input clk, output reg q, output qb);
+  always @(posedge clk)
+    q <= d;
+  assign qb = ~q;
+endmodule
+
+//================ T Flip-Flop using DFF =================
+module tff_from_dff(input t, input clk, output q, output qb);
+  wire d;
+  wire q_int;
+
+  assign d = t ^ q_int;        // D = T XOR Q
+  dff d1(.d(d), .clk(clk), .q(q_int), .qb(qb));
+  assign q = q_int;
+endmodule
+
+//================ TESTBENCH =================
+module tb_tff_from_dff;
+  reg clk, t;
+  wire q, qb;
+
+  tff_from_dff dut(.t(t), .clk(clk), .q(q), .qb(qb));
+
+  // Clock generation
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk; // period = 10
+  end
+
+  initial begin
+    $dumpfile("tff_from_dff.vcd");
+    $dumpvars(0, tb_tff_from_dff);
+    $monitor("Time=%0t | T=%b | Q=%b | Qbar=%b", $time, t, q, qb);
+
+    // Test sequence
+    t=1; #10;   // toggle
+    t=0; #10;   // hold
+    t=1; #10;   // toggle
+    t=1; #10;   // toggle
+    t=0; #10;   // hold
+
+    $finish;
+  end
+endmodule
