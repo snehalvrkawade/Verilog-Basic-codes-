@@ -1,0 +1,60 @@
+// ------------------
+// SIPO : Serial In Parallel Out
+// ------------------
+module sipo(
+  input sin,       // serial input
+  input clk,       // clock
+  input rst,       // asynchronous reset
+  output reg [3:0] qout  // parallel output
+);
+
+  always @(posedge clk or posedge rst) begin
+    if (rst)
+      qout <= 4'b0000;          // reset clears the register
+    else
+      qout <= {qout[2:0], sin}; // shift left, insert sin at LSB
+  end
+
+endmodule
+
+
+// ------------------
+// Testbench
+// ------------------
+module tb_sipo;
+
+  reg sin, clk, rst;
+  wire [3:0] qout;
+
+  // Instantiate SIPO
+  sipo dut(.sin(sin), .clk(clk), .rst(rst), .qout(qout));
+
+  // Clock generation: 10 time-unit period
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk;
+  end
+
+  // Stimulus
+  initial begin
+    $dumpfile("sipo.vcd");
+    $dumpvars(0, tb_sipo);
+    $monitor("Time=%0t | sin=%b | rst=%b | qout=%b", $time, sin, rst, qout);
+
+    // Reset active
+    rst = 1; sin = 0; #10;
+    rst = 0;
+
+    // Serial input stream
+    sin = 1; #10;  // first bit
+    sin = 0; #10;  // second bit
+    sin = 1; #10;  // third bit
+    sin = 1; #10;  // fourth bit
+    sin = 0; #10;  // fifth bit
+    sin = 1; #10;  // sixth bit
+
+    #20;
+    $finish;
+  end
+
+endmodule
