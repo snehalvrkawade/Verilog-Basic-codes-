@@ -1,0 +1,73 @@
+//====================================================
+// 16x8 ROM (Read-Only Memory)
+//====================================================
+module rom16x8(
+    input  [3:0] addr_in,   // 16 addresses
+    input        enable_in, // read enable
+    output [7:0] data       // data output
+);
+
+    // Predefined memory contents
+    reg [7:0] mem[15:0];
+
+    // Initialize ROM contents
+    initial begin
+        mem[0]  = 8'h00;
+        mem[1]  = 8'h11;
+        mem[2]  = 8'h22;
+        mem[3]  = 8'h33;
+        mem[4]  = 8'h44;
+        mem[5]  = 8'h55;
+        mem[6]  = 8'h66;
+        mem[7]  = 8'h77;
+        mem[8]  = 8'h88;
+        mem[9]  = 8'h99;
+        mem[10] = 8'hAA;
+        mem[11] = 8'hBB;
+        mem[12] = 8'hCC;
+        mem[13] = 8'hDD;
+        mem[14] = 8'hEE;
+        mem[15] = 8'hFF;
+    end
+
+    // Read logic
+    assign data = (enable_in) ? mem[addr_in] : 8'hzz;
+
+endmodule
+
+//====================================================
+// Testbench for ROM
+//====================================================
+module rom_tb;
+
+    reg  [3:0] addr;
+    reg        enable;
+    wire [7:0] data;
+
+    integer i;
+
+    // Instantiate ROM
+    rom16x8 DUT(
+        .addr_in(addr),
+        .enable_in(enable),
+        .data(data)
+    );
+
+    // Stimulus
+    initial begin
+        enable = 1; // always enable for reading
+        for(i=0; i<16; i=i+1) begin
+            addr = i;
+            #10; // wait 10ns
+        end
+        #10 $finish;
+    end
+
+    // Monitor signals
+    initial begin
+        $dumpfile("rom16x8.vcd");
+        $dumpvars(0, rom_tb);
+        $monitor("Time=%0t | addr=%d | data=%h", $time, addr, data);
+    end
+
+endmodule
