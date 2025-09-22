@@ -1,0 +1,49 @@
+// ------------------
+// 3-bit Synchronous Up Counter
+// ------------------
+module sync_up_counter(
+    input clk,
+    input rst,
+    output reg [2:0] q
+);
+
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            q <= 3'b000;      // reset to 0
+        else
+            q <= q + 1;       // increment on each clock
+    end
+endmodule
+
+
+// ------------------
+// Testbench
+// ------------------
+module tb_sync_up;
+
+    reg clk, rst;
+    wire [2:0] q;
+
+    sync_up_counter dut(.clk(clk), .rst(rst), .q(q));
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;  // period = 10
+    end
+
+    initial begin
+        $dumpfile("sync_up.vcd");
+        $dumpvars(0, tb_sync_up);
+        $monitor("Time=%0t | q=%b | rst=%b", $time, q, rst);
+
+        // Reset active for 1 clock
+        rst = 1; #10;
+        rst = 0;
+
+        // Run for a few clock cycles
+        #80;
+
+        $finish;
+    end
+endmodule
