@@ -1,0 +1,49 @@
+// ------------------
+// 4-bit Ring Counter
+// ------------------
+module ring_counter(
+    input clk,
+    input rst,
+    output reg [3:0] q
+);
+
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            q <= 4'b0001;   // Initial state = 0001
+        else
+            q <= {q[2:0], q[3]}; // Rotate left
+    end
+endmodule
+
+
+// ------------------
+// Testbench
+// ------------------
+module tb_ring_counter;
+
+    reg clk, rst;
+    wire [3:0] q;
+
+    ring_counter dut(.clk(clk), .rst(rst), .q(q));
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // 10 time units period
+    end
+
+    initial begin
+        $dumpfile("ring_counter.vcd");
+        $dumpvars(0, tb_ring_counter);
+        $monitor("Time=%0t | q=%b | rst=%b", $time, q, rst);
+
+        // Reset
+        rst = 1; #10;
+        rst = 0;
+
+        // Let it run for some cycles
+        #100;
+
+        $finish;
+    end
+endmodule
