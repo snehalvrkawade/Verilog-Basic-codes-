@@ -1,0 +1,54 @@
+// ------------------
+// SISO Shift Register 
+// ------------------
+module siso(input sin, input clk, input rst, output qout);
+  reg [3:0] sr;
+
+  always @(posedge clk or posedge rst) begin
+    if(rst)
+      sr <= 4'b0000;
+    else
+      sr <= {sr[2:0], sin};   // shift left, serial input at LSB
+  end
+
+  assign qout = sr[3]; // serial output from MSB
+endmodule
+
+
+// ------------------
+// Testbench
+// ------------------
+module tb;
+  reg sin, clk, rst;
+  wire qout;
+
+  siso dut(.sin(sin), .clk(clk), .rst(rst), .qout(qout));
+
+  // clock generation
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk; // 10 time-unit period
+  end
+
+  initial begin
+    $dumpfile("siso.vcd");
+    $dumpvars(0, tb);
+    $monitor("T=%0t | sin=%b | rst=%b | qout=%b | sr=%b", 
+              $time, sin, rst, qout, dut.sr);
+
+    // Reset
+    rst = 1; sin = 0; #10;
+    rst = 0;
+
+    // Apply serial data
+    sin=1; #10;
+    sin=0; #10;
+    sin=1; #10;
+    sin=1; #10;
+    sin=0; #10;
+    sin=1; #10;
+
+    #20;
+    $finish;
+  end
+endmodule
