@@ -1,0 +1,38 @@
+//--------------RTL Code------------------------//
+module johnson_counter(
+    input clk,
+    input rst,
+    output reg [3:0] q
+);
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            q <= 4'b0000;           // start all zeros
+        else
+            q <= {q[2:0], ~q[3]};  // feedback ~MSB into LSB
+    end
+endmodule
+///--------------------testbench---------------///
+module tb_johnson;
+    reg clk, rst;
+    wire [3:0] q;
+
+    johnson_counter dut(.clk(clk), .rst(rst), .q(q));
+
+    // Clock
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin
+        $dumpfile("johnson.vcd");
+        $dumpvars(0, tb_johnson);
+        $monitor("Time=%0t | q=%b | rst=%b", $time, q, rst);
+
+        rst = 1; #10;
+        rst = 0;
+
+        #100;
+        $finish;
+    end
+endmodule
