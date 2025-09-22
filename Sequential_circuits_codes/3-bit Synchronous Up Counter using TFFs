@@ -1,0 +1,68 @@
+// ------------------
+// T Flip-Flop Module
+// ------------------
+module tff(
+    input clk,
+    input rst,
+    input t,
+    output reg q
+);
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            q <= 0;
+        else if (t)
+            q <= ~q;
+    end
+endmodule
+
+
+// ------------------
+// 3-bit Synchronous Up Counter using TFFs
+// ------------------
+module sync_up_counter_tff(
+    input clk,
+    input rst,
+    output [2:0] q
+);
+    wire q0, q1, q2;
+
+    // TFFs with synchronous T=1
+    tff t0(.clk(clk), .rst(rst), .t(1'b1), .q(q0));
+    tff t1(.clk(clk), .rst(rst), .t(q0), .q(q1)); // next FF toggles if q0=1
+    tff t2(.clk(clk), .rst(rst), .t(q0 & q1), .q(q2)); // next FF toggles if q0 & q1 =1
+
+    assign q = {q2, q1, q0}; // 3-bit counter output
+endmodule
+
+
+// ------------------
+// Testbench
+// ------------------
+module tb_sync_up_tff;
+
+    reg clk, rst;
+    wire [2:0] q;
+
+    sync_up_counter_tff dut(.clk(clk), .rst(rst), .q(q));
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;  // 10-unit period
+    end
+
+    initial begin
+        $dumpfile("sync_up_tff.vcd");
+        $dumpvars(0, tb_sync_up_tff);
+        $monitor("Time=%0t | q=%b | rst=%b", $time, q, rst);
+
+        // Reset
+        rst = 1; #10;
+        rst = 0;
+
+        // Run for few clock cycles
+        #160;
+
+        $finish;
+    end
+endmodule
