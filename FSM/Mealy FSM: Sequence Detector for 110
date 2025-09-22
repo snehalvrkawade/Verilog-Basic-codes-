@@ -1,0 +1,84 @@
+//====================================================
+// Mealy FSM: Sequence Detector for 110
+//====================================================
+module seq_det_110(
+    input  wire seq_in,
+    input  wire clk,
+    input  wire rst,
+    output wire det_o
+);
+
+    // State encoding
+    parameter IDLE   = 2'b00,
+              STATE1 = 2'b01, // saw 1
+              STATE2 = 2'b10, // saw 11
+              STATE3 = 2'b11; // optional extra state
+
+    reg [1:0] state, next_state;
+
+    // Sequential logic
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            state <= IDLE;
+        else
+            state <= next_state;
+    end
+
+    // Next-state logic
+    always @(*) begin
+        case (state)
+            IDLE:   next_state = seq_in ? STATE1 : IDLE;
+            STATE1: next_state = seq_in ? STATE1 : STATE2;
+            STATE2: next_state = seq_in ? STATE3 : IDLE;
+            STATE3: next_state = seq_in ? STATE1 : STATE2;
+            default: next_state = IDLE;
+        endcase
+    end
+
+    // Mealy output
+    assign det_o = (state == STATE2 && seq_in == 0) ? 1'b1 : 1'b0;
+
+endmodule
+
+//====================================================
+// Testbench
+//====================================================
+module tb_seq_det_110;
+
+    reg clk, rst, din;
+    wire dout;
+
+    seq_det_110 uut(.seq_in(din), .clk(clk), .rst(rst), .det_o(dout));
+
+    // Clock generation
+    initial clk = 0;
+    always #5 clk = ~clk; // 10ns period
+
+    // Stimulus
+    initial begin
+        rst = 1; din = 0;
+        #15 rst = 0;
+
+        // Test sequence: 1 1 0 1 1 0 0 1 1 0
+        #10 din = 1;
+        #10 din = 1;
+        #10 din = 0;
+        #10 din = 1;
+        #10 din = 1;
+        #10 din = 0;
+        #10 din = 0;
+        #10 din = 1;
+        #10 din = 1;
+        #10 din = 0;
+
+        #20 $finish;
+    end
+
+    // Monitor signals
+    initial begin
+        $dumpfile("seq_det_110.vcd");
+        $dumpvars(0, tb_seq_det_110);
+        $monitor("Time=%0t | din=%b | dout=%b", $time, din, dout);
+    end
+
+endmodule
