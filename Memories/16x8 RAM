@@ -1,0 +1,91 @@
+
+//====================================================
+// Simple 16x8 RAM
+//====================================================
+module ram(
+    input        we_in,      // write enable
+    input        enable_in,  // read enable
+    input  [3:0] addr_in,    // 16 addresses
+    inout  [7:0] data         // bidirectional data
+);
+
+    reg [7:0] mem[15:0];     // 16x8 memory
+
+    // Write logic (combinational)
+    always @(*) begin
+        if (we_in && !enable_in)
+            mem[addr_in] = data;
+    end
+
+    // Read logic
+    assign data = (enable_in && !we_in) ? mem[addr_in] : 8'hzz;
+
+endmodule
+
+//====================================================
+// Testbench for RAM with VCD output
+//====================================================
+module ram_tb;
+
+    reg  [3:0] addr;
+    reg        we, enable;
+    reg  [7:0] tempd;
+    wire [7:0] data;
+
+    integer i;
+
+    // Instantiate RAM
+    ram DUT(
+        .we_in(we),
+        .enable_in(enable),
+        .addr_in(addr),
+        .data(data)
+    );
+
+    // Drive data during write
+    assign data = (we && !enable) ? tempd : 8'hzz;
+
+    // Initial block for stimulus
+    initial begin
+        // VCD dump
+        $dumpfile("ram.vcd");   // VCD file name
+        $dumpvars(0, ram_tb);   // dump all signals in this module
+
+        // Initialize
+        addr = 0; we = 0; enable = 0; tempd = 0;
+        #10;
+
+        // Enable write
+        we = 1; enable = 0;
+
+        // Write 0-15 into addresses 0-15
+        for(i=0; i<16; i=i+1) begin
+            addr = i;
+            tempd = i;
+            #10;
+        end
+
+        // Disable write
+        we = 0; enable = 0;
+        #10;
+
+        // Enable read
+        we = 0; enable = 1;
+
+        // Read addresses 0-15
+        for(i=0; i<16; i=i+1) begin
+            addr = i;
+            #10;
+        end
+
+        #10;
+        $finish;
+    end
+
+    // Monitor signals
+    initial begin
+        $monitor("Time=%0t | addr=%d | data=%d | we=%b | enable=%b", 
+                  $time, addr, data, we, enable);
+    end
+
+endmodule
