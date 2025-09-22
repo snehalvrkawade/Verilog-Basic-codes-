@@ -1,0 +1,57 @@
+//====================================================
+// Divide-by-2 Clock Divider with 50% Duty Cycle
+//====================================================
+module clk_div2 (
+    input  wire clk,    // input clock
+    input  wire rst,    // active high reset
+    output reg  clk_out // divided clock (÷2, 50% duty)
+);
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            clk_out <= 0;
+        end else begin
+            clk_out <= ~clk_out; // toggle output every clock edge
+        end
+    end
+
+endmodule
+
+//====================================================
+// Testbench for clk_div2
+//====================================================
+module tb_clk_div2;
+
+    reg clk;
+    reg rst;
+    wire clk_out;
+
+    // Instantiate DUT
+    clk_div2 uut (
+        .clk(clk),
+        .rst(rst),
+        .clk_out(clk_out)
+    );
+
+    // Generate input clock (10ns period)
+    initial clk = 0;
+    always #5 clk = ~clk;
+
+    // Stimulus
+    initial begin
+        rst = 1;
+        #20;
+        rst = 0;
+
+        #100 $finish;
+    end
+
+    // Monitor signals
+    initial begin
+        $dumpfile("clk_div2.vcd");
+        $dumpvars(0, tb_clk_div2);
+        $monitor("Time=%0t | clk=%b | rst=%b | clk_out=%b", $time, clk, rst, clk_out);
+    end
+
+endmodule
+
