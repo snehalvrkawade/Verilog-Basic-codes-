@@ -1,0 +1,27 @@
+//====================================================
+// Divide-by-3 Clock Divider with 50% Duty Cycle
+//====================================================
+module clk_div3 (
+    input  wire clk,   // input clock
+    input  wire rst,   // active high reset
+    output reg  clk_out // divided clock (÷3, ~50% duty)
+);
+
+    reg [1:0] cnt;
+
+    // Counter runs on both edges for 50% duty
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            cnt     <= 0;
+            clk_out <= 0;
+        end else begin
+            if (cnt == 2) begin
+                cnt     <= 0;
+                clk_out <= ~clk_out;
+            end else begin
+                cnt <= cnt + 1;
+            end
+        end
+    end
+
+endmodule
