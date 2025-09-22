@@ -1,0 +1,50 @@
+// ------------------
+// 3-bit Asynchronous Up Counter
+// ------------------
+module async_up_counter(
+    input clk,
+    input rst,
+    output reg [2:0] q
+);
+
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            q <= 3'b000;       // reset to 0
+        else
+            q <= q + 1;        // increment on each positive edge
+    end
+
+endmodule
+
+
+// ------------------
+// Testbench
+// ------------------
+module tb_async_up;
+
+    reg clk, rst;
+    wire [2:0] q;
+
+    async_up_counter dut(.clk(clk), .rst(rst), .q(q));
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;  // 10-unit period
+    end
+
+    initial begin
+        $dumpfile("async_up.vcd");   // waveform
+        $dumpvars(0, tb_async_up);
+        $monitor("Time=%0t | q=%b | rst=%b", $time, q, rst);
+
+        // Reset active for 1 clock
+        rst = 1; #10;
+        rst = 0;
+
+        // Run for few clock cycles
+        #80;
+
+        $finish;
+    end
+endmodule
