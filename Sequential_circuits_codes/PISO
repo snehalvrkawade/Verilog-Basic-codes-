@@ -1,0 +1,63 @@
+// ------------------
+// PISO Module
+// ------------------
+module piso(
+    input [3:0] p,   // parallel input
+    input clk,
+    input rst,
+    input load,       // load control: 1 = load parallel, 0 = shift
+    output reg qout   // serial output
+);
+    reg [3:0] shift_reg;
+
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            shift_reg <= 4'b0000;
+        else if (load)
+            shift_reg <= p;       // load parallel input
+        else
+            shift_reg <= {shift_reg[2:0], 1'b0}; // shift left
+    end
+
+    assign qout = shift_reg[3]; // MSB as serial output
+endmodule
+
+// ------------------
+// Testbench
+// ------------------
+module tb_piso;
+
+    reg [3:0] p;
+    reg clk, rst, load;
+    wire qout;
+
+    piso dut(.p(p), .clk(clk), .rst(rst), .load(load), .qout(qout));
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;  // period = 10
+    end
+
+    initial begin
+        $dumpfile("piso.vcd");
+        $dumpvars(0, tb_piso);
+        $monitor("Time=%0t | p=%b | load=%b | qout=%b | rst=%b",
+                  $time, p, load, qout, rst);
+
+        // Reset
+        rst = 1; load = 0; p = 4'b0000; #10;
+        rst = 0;
+
+        // Load parallel data
+        load = 1; p = 4'b1011; #10;
+
+        // Start shifting
+        load = 0; #10;  // 1st shift
+        #10;            // 2nd shift
+        #10;            // 3rd shift
+        #10;            // 4th shift
+
+        $finish;
+    end
+endmodule
