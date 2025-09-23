@@ -1,0 +1,67 @@
+// 16 x 8 Static RAM (SRAM model)
+module sram (
+    input we,             // write enable
+    input en,             // chip enable
+    input [3:0] addr,     // 4-bit address = 16 locations
+    inout [7:0] data      // 8-bit bidirectional data bus
+);
+
+    reg [7:0] mem [15:0];   // memory array (16 x 8)
+
+    // Write operation
+    always @(*) begin
+        if (en && we) begin
+            mem[addr] = data;   // store data into memory
+        end
+    end
+
+    // Read operation
+    assign data = (en && !we) ? mem[addr] : 8'hZZ;  // Tri-state when not reading
+
+endmodule
+`timescale 1ns/1ps
+module sram_tb;
+
+    reg we, en;
+    reg [3:0] addr;
+    reg [7:0] tempd;     // for driving data
+    wire [7:0] data;
+
+    integer i;
+
+    // Instantiate SRAM
+    sram DUT (
+        .we(we),
+        .en(en),
+        .addr(addr),
+        .data(data)
+    );
+
+    // Drive data bus during write
+    assign data = (we && en) ? tempd : 8'hZZ;
+
+    initial begin
+        $dumpfile("sram.vcd");   // for waveform in EDA Playground
+        $dumpvars(0, sram_tb);
+
+        // ---------- Write Phase ----------
+        en = 1; we = 1;
+        for (i = 0; i < 16; i = i + 1) begin
+            addr = i;
+            tempd = i + 8'h10;   // store values 0x10,0x11,...0x1F
+            #10;
+        end
+
+        // ---------- Read Phase ----------
+        en = 1; we = 0;
+        for (i = 0; i < 16; i = i + 1) begin
+            addr = i;
+            #10;
+            $display("Read addr=%0d => data=%h", addr, data);
+        end
+
+        #20 $finish;
+    end
+
+endmodule
+
