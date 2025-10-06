@@ -1,5 +1,5 @@
 //==================== DATAFLOW MODEL ====================
-// Uncomment this block to run Dataflow model
+
 /*
 module comparator(input a,b, output less,equal,greater);
   assign less    = ~a & b;
@@ -10,7 +10,7 @@ endmodule
 
 
 //==================== BEHAVIORAL MODEL (if-else) ====================
-// Uncomment this block to run Behavioral (if-else) model
+
 /*
 module comparator(input a,b, output reg less, equal, greater);
   always @(*) begin
@@ -29,7 +29,7 @@ endmodule
 
 
 //==================== BEHAVIORAL MODEL (case) ====================
-// Uncomment this block to run Behavioral (case) model
+
 /*
 module comparator(input a,b, output reg less, equal, greater);
   always @(*) begin
