@@ -1,24 +1,81 @@
-//==================== 1-BIT COMPARATOR (Structural) ====================
-module comparator1bit(
-  input A, B,
-  output Equal, A_greater_B, B_greater_A
-);
-  wire notA, notB;
-  wire AandNotB, NotAandB;
-  wire AxorB;
+//==================== DATAFLOW MODEL ====================
+// Uncomment this block to run Dataflow model
+/*
+module comparator(input a,b, output less,equal,greater);
+  assign less    = ~a & b;
+  assign equal   = ~(a ^ b); // XNOR
+  assign greater = a & ~b;
+endmodule
+*/
 
-  // NOT gates
-  not u1(notA, A);
-  not u2(notB, B);
 
-  // AND gates
-  and u3(AandNotB, A, notB); // A > B
-  and u4(NotAandB, notA, B); // B > A
-  and u5(AxorB, A, notB);    // Intermediate for Equal
-  xor u6(Equal, A, B);       // Actually Equal = ~(A^B)
-  not u7(Equal, Equal);
+//==================== BEHAVIORAL MODEL (if-else) ====================
+// Uncomment this block to run Behavioral (if-else) model
+/*
+module comparator(input a,b, output reg less, equal, greater);
+  always @(*) begin
+    if (a > b) begin
+      greater = 1; equal = 0; less = 0;
+    end
+    else if (a == b) begin
+      greater = 0; equal = 1; less = 0;
+    end
+    else begin
+      greater = 0; equal = 0; less = 1;
+    end
+  end
+endmodule
+*/
 
-  // Assign greater outputs
-  assign A_greater_B = AandNotB;
-  assign B_greater_A = NotAandB;
+
+//==================== BEHAVIORAL MODEL (case) ====================
+// Uncomment this block to run Behavioral (case) model
+/*
+module comparator(input a,b, output reg less, equal, greater);
+  always @(*) begin
+    case ({a,b})
+      2'b00: begin less=0; equal=1; greater=0; end
+      2'b01: begin less=1; equal=0; greater=0; end
+      2'b10: begin less=0; equal=0; greater=1; end
+      2'b11: begin less=0; equal=1; greater=0; end
+      default: begin less=0; equal=0; greater=0; end
+    endcase
+  end
+endmodule
+*/
+
+
+//==================== STRUCTURAL MODEL ====================
+// Uncomment this block to run Structural model
+module comparator(input a,b, output less,equal,greater);
+  wire nota, notb, axorb;
+  not (nota, a);
+  not (notb, b);
+  xor (axorb, a, b);
+  and (greater, a, notb);
+  and (less, nota, b);
+  not (equal, axorb); // XNOR = NOT(XOR)
+endmodule
+
+
+//==================== TESTBENCH ====================
+module tb;
+  reg a,b;
+  wire less,equal,greater;
+
+  comparator dut(.a(a), .b(b), .less(less), .equal(equal), .greater(greater));
+
+  initial begin
+    $dumpfile("comparator.vcd");
+    $dumpvars(0, tb);
+    $monitor("Time=%0t | a=%b | b=%b | less=%b | equal=%b | greater=%b", 
+              $time, a, b, less, equal, greater);
+
+    a=0; b=0; #5;
+    a=0; b=1; #5;
+    a=1; b=0; #5;
+    a=1; b=1; #5;
+
+    $finish;
+  end
 endmodule
