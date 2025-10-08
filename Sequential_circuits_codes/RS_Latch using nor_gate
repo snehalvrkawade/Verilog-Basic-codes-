@@ -28,6 +28,35 @@ module rs_latch(input R, S, output reg Q, Qbar);
 endmodule
 */
 
+//================ BEHAVIORAL MODEL USING CASE =================
+/*
+module rs_latch(input R, S, output reg Q, Qbar);
+  always @(*) begin
+    case ({R, S})
+      2'b00: begin
+        // Hold condition (no change)
+        Q = Q;       
+        Qbar = Qbar;
+      end
+      2'b01: begin
+        // Set condition
+        Q = 1;
+        Qbar = 0;
+      end
+      2'b10: begin
+        // Reset condition
+        Q = 0;
+        Qbar = 1;
+      end
+      2'b11: begin
+        // Invalid condition
+        Q = 1'bx;
+        Qbar = 1'bx;
+      end
+    endcase
+  end
+endmodule
+*/
 //================ STRUCTURAL MODEL =================
 /*
 module rs_latch(input R, S, output Q, Qbar);
