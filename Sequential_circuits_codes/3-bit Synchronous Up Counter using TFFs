@@ -7,7 +7,7 @@ module tff(
     input t,
     output reg q
 );
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk ) begin
         if (rst)
             q <= 0;
         else if (t)
