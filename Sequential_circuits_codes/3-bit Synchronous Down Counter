@@ -7,7 +7,7 @@ module sync_down_counter(
     output reg [2:0] q
 );
 
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk ) begin
         if (rst)
             q <= 3'b111;      // reset to max value
         else
